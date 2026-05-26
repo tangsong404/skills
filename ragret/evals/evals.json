@@ -1,0 +1,42 @@
+{
+  "skill_name": "ragret",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Can you search our internal RAGret knowledge base for information about the refund policy? I think we have an index called 'product_docs'.",
+      "expected_output": "Claude uses the RAGret skill to search the 'product_docs' index, handles any missing config gracefully, and returns results with provenance.",
+      "files": [],
+      "expectations": [
+        "The skill prompts for RAGRET_API_KEY and BASE_URL if not set, without asking for raw secrets in chat",
+        "The skill constructs the correct curl command to search the 'product_docs' index",
+        "The skill uses X-API-Key header with the API key from environment",
+        "The skill does not hardcode or expose the API key in plain text in commands shown to the user"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to find something in our internal docs about the deployment process. Not sure what's available — can you check what indexes I have access to?",
+      "expected_output": "Claude first lists available indexes via the RAGret API, then asks which one to search, then performs the search.",
+      "files": [],
+      "expectations": [
+        "The skill first lists indexes using the /api/subscribe-indexes endpoint",
+        "The skill presents the available indexes to the user before searching",
+        "The skill asks the user to choose an index or specify what they're looking for",
+        "The skill constructs the correct API URLs using BASE_URL environment variable"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Search RAGret for 'microservices best practices' in the 'engineering' index and give me a summary.",
+      "expected_output": "Claude formulates the search query and retrieves results from the RAGret 'engineering' index, then summarizes the findings with source citations.",
+      "files": [],
+      "expectations": [
+        "The skill uses the correct search endpoint /api/search/engineering",
+        "The skill passes the query as a URL-encoded parameter",
+        "The skill handles JSON response by parsing the 'result' field",
+        "The skill cites sources from the retrieval results if available",
+        "The skill offers a text format option as an alternative to JSON parsing"
+      ]
+    }
+  ]
+}

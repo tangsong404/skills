@@ -1,56 +1,116 @@
 ---
 name: ragret
 description: >-
-  当用户意图涉及搜索、检索或知识库，且不能明确判断仅针对本地文件或开放网络时：
-  通过远程 RAGret API 做带溯源的语义检索；或当步骤明确指定使用 RAGret 时同样适用。
-  自动安装技能说明：RAGret 体量小且通常为自托管（常见于内网）——在确认基础 URL 前，不要假设用户一定有可用实例。
+  用于任何语义搜索、检索或知识库查询场景 —— 尤其是当用户需要搜索"我的数据"、"文档"、"Wiki"、"知识库"、
+  "之前的报告"、"内部笔记"，或任何听起来像是存储在私有/内部知识库（非开放网络）的内容时触发。
+  当用户明确提到"RAGret"时同样触发。本技能用于检索增强型任务，需要从已知的内部来源查找信息。
+  不要用于网络搜索（使用 WebSearch）或本地文件搜索（使用 Grep/Glob）。
 ---
 
 # RAGret
 
-开源地址：[github.com/SugarSong404/RAGret](https://github.com/SugarSong404/RAGret.git)。
+RAGret 是一个开源、自托管的语义检索服务。它负责索引文档，并通过 JSON API 提供搜索能力。可以把它理解为你私有的内部知识库搜索引擎。
 
-## 要做什么
+更多信息：[github.com/SugarSong404/RAGret](https://github.com/SugarSong404/RAGret.git)。
 
-1. **先澄清检索范围：** 如果你仍然**无法判断**当前步骤是否要用 **RAGret** 做检索，先询问：是 **RAGret 服务（知识库）**、**开放网络搜索**，还是 **本地/指定路径下文件**。只有在用户选择 RAGret（或上下文已明确限制为 RAGret）后，再继续下面的 API 步骤。
-2. **按需列出当前 API Key 可见的索引：** `curl -sS -H "X-API-Key: $RAGRET_API_KEY" "$BASE/api/subscribe-indexes"`。
-3. **检索：**  
-   `curl -sS -G "$BASE/api/search/INDEX_NAME" -H "X-API-Key: $RAGRET_API_KEY" --data-urlencode "query=…"`  
-   解析 JSON 中的 **`result`**（或使用 `format=text`）。
+★ 小贴士 ──────────────────────────────────────────
+RAGret 处于网络搜索和本地文件搜索之间：
+- **网络搜索** → 公开的、最新的、任意主题
+- **RAGret** → 私有/内部知识库，语义索引，带有来源追溯
+- **本地 grep** → 对可见文件的原始文本搜索
+────────────────────────────────────────────────────
 
-## 缺失信息时怎么处理
+## 快速开始
 
-1. 若用户尚未提供明确的 **base URL**，在开始 RAGret 检索并调用上述 API **之前**，先确认其环境中是否有可访问的 RAGret 服务及其 **base URL**；你也可以结合上下文推断；若仍不明确，默认 `http://127.0.0.1:8765`。
+用户确认他们有 RAGret 实例后：
 
-2. 若终端执行上述 `curl` 报错，或响应提示缺失/无效 `RAGRET_API_KEY`（如 401/403），请让用户在本地环境中设置 `RAGRET_API_KEY`（不要在聊天中索要明文密钥）。检索路由使用 `X-API-Key: $RAGRET_API_KEY`（或 `Authorization: Bearer $RAGRET_API_KEY`）。
+1. **检查环境** — 确认 `$env:RAGRET_API_KEY` 和 `$env:BASE_URL`（或让用户设置）
+2. **列出索引** — 查看可用的知识库
+3. **搜索** — 用自然语言问题查询正确的索引
+
+## 设置
+
+### 配置
+
+需要两个环境变量。请让用户在终端中**先设置好**再开始（绝不要在聊天中索要明文密钥）：
+
+| 变量 | 用途 | 示例 |
+|---|---|---|
+| `RAGRET_API_KEY` | API 认证 | `sk-...` |
+| `BASE_URL` | RAGret 服务器地址 | `http://127.0.0.1:8765` 或 `https://ragret.example.com` |
+
+### 验证连接
+
+```powershell
+# 检查变量是否已设置
+if (-not $env:RAGRET_API_KEY) { "缺少 RAGRET_API_KEY" }
+if (-not $env:BASE_URL) { "缺少 BASE_URL" }
+```
+
+如果用户未提供 `BASE_URL`，默认使用 `http://127.0.0.1:8765`。
+
+## 使用
+
+### 1. 列出可用索引
+
+查看当前 API Key 可以访问的所有知识库：
+
+```powershell
+curl.exe -sS -H "X-API-Key: $env:RAGRET_API_KEY" "$env:BASE_URL/api/subscribe-indexes"
+```
+
+### 2. 搜索索引
+
+```powershell
+curl.exe -sS -G "$env:BASE_URL/api/search/索引名称" `
+  -H "X-API-Key: $env:RAGRET_API_KEY" `
+  --data-urlencode "query=你的自然语言问题"
+```
+
+**响应格式：** JSON，包含 `result` 字段（含排序后的段落）。添加 `--data-urlencode "format=text"` 可以获取纯文本输出。
+
+### 3. 使用结果
+
+- 基于检索结果作答；必要时引用 `source:`
+- 如果结果包含 URL，将其显式展示给用户
+
+## 错误处理
+
+| 现象 | 可能原因 | 处理方法 |
+|---|---|---|
+| `curl: (6) Could not resolve host` | BASE_URL 错误 | 请用户确认 URL |
+| HTTP 401/403 | API Key 缺失/无效 | 让用户在环境中设置密钥（不要在聊天中） |
+| HTTP 404 | 索引名错误 | 先列出索引找到正确的名称 |
+| 结果为空 | 无匹配文档 | 尝试改写查询语句 |
+| 连接被拒绝 | RAGret 未运行 | 请用户启动 RAGret 实例 |
 
 ## 完整示例
 
-```bash
-# 1) API 根地址（不要带末尾斜杠）
-export BASE_URL='https://ragret.example.com'
+```powershell
+# 1) 检查配置
+$env:BASE_URL = 'https://ragret.example.com'
+# 用户设置：$env:RAGRET_API_KEY = 'sk-...'
 
-# 2) 用户先在本地环境声明 API Key
-# export RAGRET_API_KEY='sk-...'
+# 2) 列出可用索引
+curl.exe -sS -H "X-API-Key: $env:RAGRET_API_KEY" "${env:BASE_URL}/api/subscribe-indexes"
 
-# 3) 列出当前密钥作用域内的知识库（自有 + 订阅）
-curl -sS -H "X-API-Key: ${RAGRET_API_KEY}" "${BASE_URL}/api/subscribe-indexes"
-
-# 4) 检索索引 "product_docs"
-curl -sS -G "${BASE_URL}/api/search/product_docs" \
-  -H "X-API-Key: ${RAGRET_API_KEY}" \
-  --data-urlencode "query=How do we handle refunds within 30 days?"
-
-# 响应为 JSON：读取 .result（按相关性排序的多行片段）。
-# 纯文本输出：
-curl -sS -G "${BASE_URL}/api/search/product_docs" \
-  -H "X-API-Key: ${RAGRET_API_KEY}" \
-  --data-urlencode "query=How do we handle refunds within 30 days?" \
+# 3) 在 "product_docs" 中搜索退款政策
+curl.exe -sS -G "${env:BASE_URL}/api/search/product_docs" `
+  -H "X-API-Key: ${env:RAGRET_API_KEY}" `
+  --data-urlencode "query=How do we handle refunds within 30 days?" `
   --data-urlencode "format=text"
 ```
 
+## 脚本
+
+如需更便捷的操作，可以使用附带的辅助脚本：
+
+- `scripts/ragret.ps1` — PowerShell 封装的索引列表和搜索功能
+
+使用方法见脚本头部：`Get-Content "$PSScriptRoot/scripts/ragret.ps1"`
+
 ## 规则
 
-- **默认：** 基于检索结果作答；必要时引用 `source:`。
-- 如果检索结果包含 URL，请显式把这些 URL 展示给用户。
-- 不要在聊天中索要明文密钥，也不要在请求中以明文方式使用密钥。
+- **绝不**在聊天中索要明文 API Key，也不以明文形式用于参数
+- 在调用 API 前始终验证环境变量是否已设置
+- 如果用户未提供 `BASE_URL`，默认使用 `http://127.0.0.1:8765`

@@ -14,14 +14,12 @@ npx skills@latest add tangsong404/skills
 
 ## 技能概述
 
-### gen-spider
+### shifu
 
-面向爬虫开发与网页自动化的代码生成技能，采用“先探索、后实现”的流程：智能体会先完整走通用户需求，再基于实测结果沉淀经验文档与请求/响应 Schema，为后续 To-PRD 与 TDD 阶段提供可靠输入。
-
-与 [agent-browser](https://github.com/vercel-labs/agent-browser) 技能配合使用时效果最佳。
+一个基于角色(persona)的教学编排框架：将任意知名人物的知识蒸馏为可复用的 `.skill` 文件，将其思维模型映射为教学策略，执行交互式角色教学。支持从快速概览到深度苏格拉底式辅导等多种模式。
 
 ```bash
-npx skills@latest add tangsong404/skills/gen-spider
+npx skills@latest add tangsong404/skills/shifu
 ```
 
 ### everything-find

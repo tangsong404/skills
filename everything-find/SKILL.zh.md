@@ -1,52 +1,75 @@
 ---
 name: everything-find
-description: "在 Windows 上使用 Everything 的 es.exe CLI 进行快速文件/目录搜索。适用于用户要求全局查找文件、在大范围内搜索模式、定位可执行文件或比较搜索速度的场景，不适应于工作目录中的查找。触发语义：'find'、'search'、'where is'、'locate'。"
+description: 在 Windows 上使用 es.exe 进行快速索引文件/目录搜索。触发场景：用户要求找文件/目录，定位依赖/工具路径（"python 在哪"、"找 node.exe"），自身执行报错时的系统搜索（"'xxx' 不是内部或外部命令"、"ModuleNotFoundError"），以及任务执行中主动搜索文件路径。不适合项目目录内搜索（用 Glob/Grep）或文件内容搜索（用 Grep）。
 ---
 
 # everything-find
 
-在 Windows 上使用 Everything 的索引搜索进行快速文件/目录查找（比原生查找要快很多）。
+在 Windows 上使用 **Everything** (voidtools) 的索引搜索进行极速文件和目录查找。
+Everything 维护了整个 NTFS 文件系统的实时索引，搜索只需 1–2 秒，远快于 `find` 或 Explorer 搜索（通常需要 60 秒以上）。
 
-## 用法
+## 工作原理
 
-在 Windows 上使用 `es.exe` 进行索引文件搜索，`es.exe` 与 `everything.exe`都在当前技能目录的`scripts`子目录中
+- `es.exe` — 命令行搜索工具，返回结果到终端
+- `everything.exe` — 后台索引服务，搜索前需要运行
+- 两个二进制文件都在本技能目录的 `scripts/` 子目录下
 
 ## 快速开始
 
-1. 使用前，确认 `es.exe` 与 `everything.exe` 两个应用都存在，否则前往<https://www.voidtools.com/downloads/>进行下载。
-2. 若 `es.exe` 返回代码 `8`，启动 `everything.exe` 后重试。
-3. 使用 `es.exe` 执行搜索，仅使用满足用户请求所需的选项。
+1. **确认二进制文件存在**于 `scripts/` 目录。如缺失，从 <https://www.voidtools.com/downloads/> 下载 Everything 便携版和 ES 命令行工具。
+2. **启动 `everything.exe`**（只需一次，会在后台静默运行）。安全无 GUI 要求，资源占用极小。
+3. **执行搜索**。索引是实时的；新文件可能需要几秒钟才会出现在搜索结果中。
 
-## 常见模式
+## 常用搜索模式
 
-| 目标 | 模式 |
-| ---- | ---- |
-| 按名称查找文件 | `es.exe <keyword>` |
-| 仅查找目录 | `es.exe <keyword> -ad` |
-| 仅查找文件 | `es.exe <keyword> /a-d` |
-| 限制结果数量 | `es.exe <keyword> -n <count>` |
-| 正则匹配 | `es.exe -r "<pattern>"` |
-| 区分大小写匹配 | `es.exe -i <keyword>` |
-| 在指定路径内搜索 | `es.exe <keyword> -path "<folder>"` |
+| 目标 | 命令 |
+|------|------|
+| 按名称搜索 | `es.exe <关键词>` |
+| 仅文件 | `es.exe <关键词> -a-d` |
+| 仅目录 | `es.exe <关键词> -ad` |
+| 限制结果数 | `es.exe <关键词> -n 20` |
+| 区分大小写 | `es.exe -i <关键词>` |
+| 正则匹配 | `es.exe -r "<模式>"` |
+| 限定路径 | `es.exe <关键词> -path "C:\Users"` |
+| 全词匹配 | `es.exe -w <关键词>` |
+
+结果包含每个匹配项的完整路径。结果过多时可通过管道传给 `find` 或 `Select-String` 进一步筛选。
+
+## 依赖与工具定位
+
+Windows 开发中的常见场景是定位已安装的运行时和工具。使用以下模式：
+
+| 目标 | 命令 |
+|------|------|
+| 查找可执行文件 | `es.exe <名称>.exe -a-d` |
+| 查找 Python 安装 | `es.exe python.exe -a-d` |
+| 查找 npm/node | `es.exe node.exe -a-d` 或 `es.exe npm -a-d` |
+| 查找特定包目录 | `es.exe <包名> -ad -path "C:\Users\<用户名>" -n 10` |
+| 查找 SDK 根目录 | `es.exe <SDK名> -ad -n 5` |
+
+当用户说"缺了 X"或"找不到 Y"时，先用 es.exe 检查系统中是否存在 Y，而不是假设它没装。索引搜索 1-2 秒完成，是验证安装最快的方式。
+
+**自触发报错**：当你自己的执行遇到错误——"'xxx' 不是内部或外部命令"、"ModuleNotFoundError"、"无法将 X 识别为 cmdlet"等——不要立即报告失败。先用 es.exe 搜索定位缺失的工具。如果找到就返回路径，如果确实没找到也能给出确切的"系统上不存在"结论和建议安装方案。
+
+**主动搜索**：当用户让你"运行"、"打开"、"查看"、"执行"某个东西但没给完整路径时，先用 es.exe 搜一下再问用户。比如用户说"帮我跑一下 data_analysis.py"→先在系统上搜索 data_analysis.py 的位置，可能就在某个项目目录下，省去一次来回确认。
 
 ## 错误处理
 
-| 返回码 | 含义                    | 动作                               |
-| ------ | ----------------------- | ---------------------------------- |
-| 0      | 成功                    | 返回结果                           |
-| 8      | Everything 未运行       | 启动 `everything.exe` 后重试           |
-| 其他   | 错误                    | 返回错误细节并停止                 |
+| 退出码 | 含义 | 操作 |
+|--------|------|------|
+| 0 | 成功 | 向用户返回结果 |
+| 8 | Everything 未运行 | 静默启动 `everything.exe` 后重试 |
+| 其他 | 错误 | 显示错误详情并停止 |
 
-## 重要说明
+## 结果展示
 
-- **下载**：如果进行下载，请下载Everything便捷版，形似`Everything-*.zip` ；及其命令行工具，形似`ES-*.zip`
-- **速度**：Everything 返回结果约需 1-2 秒，`find` 常需 60+ 秒
-- **索引**：实时索引；新文件出现可能会有几秒延迟
-- **无 GUI 要求**：`everything.exe` 在后台静默运行
+- 给用户清晰摘要："找到 N 条 `<关键词>` 的结果"
+- 优先列出最相关的结果（使用 `-n` 限制过长列表）
+- 对于面向用户的路径显示，可以修剪公共前缀或高亮文件名
+- 当结果为零时，建议用户尝试更宽泛的关键词或检查索引是否最新
 
-## 返回码
+## 不需要使用的情况
 
-| 代码 | 含义                                              |
-| ---- | ------------------------------------------------- |
-| 0    | 成功                                              |
-| 8    | Everything 未运行 —— 先启动 `everything.exe`          |
+- **当前项目目录内搜索**：使用 Glob 或 Grep —— 它们在工作树内工作，无需索引
+- **文件内容搜索**：使用 Grep —— `es.exe` 只能搜索文件名，不能搜索文件内容
+- **简单的 `ls` / `dir`**：直接用 `Get-ChildItem` 或 `dir` 即可

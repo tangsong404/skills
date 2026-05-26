@@ -14,14 +14,12 @@ npx skills@latest add tangsong404/skills
 
 ## Skill Overview
 
-### gen-spider
+### shifu
 
-A code-generation skill for web scraping and browser automation, following an "explore first, implement later" workflow: the agent first completes the full user-requested flow, then distills practical documentation and request/response Schemas from real test results, providing reliable inputs for subsequent To-PRD and TDD stages.
-
-Works best when used together with the [agent-browser](https://github.com/vercel-labs/agent-browser) skill.
+An orchestration framework for persona-based teaching: distill any notable person's knowledge into a reusable `.skill` file, map their mental models into teaching strategies, and execute interactive persona-based lessons. Supports modes from quick overviews to deep, Socratic-style tutoring.
 
 ```bash
-npx skills@latest add tangsong404/skills/gen-spider
+npx skills@latest add tangsong404/skills/shifu
 ```
 
 ### everything-find

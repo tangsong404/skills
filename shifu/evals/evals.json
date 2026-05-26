@@ -1,0 +1,44 @@
+{
+  "skill_name": "shifu",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "师父 量子力学 @费曼",
+      "expected_output": "Shifu orchestrates full pipeline: check/make Feynman skill, map mental models to strategies, teach quantum mechanics in Feynman's style. Key differentiators from baseline: three-step process visible, structured mapping, 诚实说明.",
+      "files": [],
+      "expectations": [
+        "Three-step pipeline visible: 蒸馏(check or simulate nuwa) → 映射(mental models→strategies) → 教学(persona-driven)",
+        "Teaching strategies derived from Feynman's mental models (first principles, analogies, empirical)",
+        "诚実说明/前言 present: explains this is not real Feynman, based on public sources",
+        "Teaching style matches Feynman: short sentences, Socratic questions, analogies",
+        "Structured teaching-config produced mapping mental models to specific strategies"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "师父 Python闭包",
+      "expected_output": "No person → skip distillation and mapping → direct generic teach-me mode with level diagnosis and interactive questions.",
+      "files": [],
+      "expectations": [
+        "No nuwa distillation triggered (no @person found)",
+        "Starts with level diagnosis before teaching",
+        "Uses interactive ask_choice format for questions",
+        "No persona claims (explicitly says generic teaching)",
+        "Concepts are structured in learnable order"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "师父 @芒格",
+      "expected_output": "Person exploration mode: check/make Munger skill, map mental models, enter exploratory dialogue about his thinking framework rather than structured teaching.",
+      "files": [],
+      "expectations": [
+        "Focus on Munger's mental models and thinking framework, not topic teaching",
+        "Multiple Munger concepts referenced (latticework, inversion, circle of competence, psychology of misjudgment)",
+        "Engages in exploratory dialogue: uses ask_choice for user to pick exploration direction",
+        "Teaching strategy mappings derived from Munger's mental models",
+        "诚実说明 and disclaimers present about persona limitations"
+      ]
+    }
+  ]
+}
