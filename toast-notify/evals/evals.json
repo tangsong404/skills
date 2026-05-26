@@ -1,0 +1,23 @@
+{
+  "skill_name": "toast-notify",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "help me write a powershell script that lists all running processes and writes their name, CPU time, and memory usage to a CSV file on the desktop. Save it as process_report.csv.",
+      "expected_output": "The agent should write a PowerShell script, explain how it works, then fire a Windows toast notification with a title like 'Scripting: process monitoring tool' and a message summarizing what was created.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "what time is it right now? just give me the time.",
+      "expected_output": "The agent should give a brief answer, then fire a toast notification even for this short response. Title could be 'Quick Q&A' and message brief.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Stop sending notifications from today, they're too annoying. Don't notify me anymore.",
+      "expected_output": "The agent should acknowledge the request and NOT fire any toast notification.",
+      "files": []
+    }
+  ]
+}
