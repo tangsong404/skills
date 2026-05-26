@@ -51,3 +51,13 @@ npx skills@latest add tangsong404/skills/ragret
 ```bash
 npx skills@latest add tangsong404/skills/openspec-apply-tdd
 ```
+
+### toast-notify
+
+在每次 AI 响应结束时发送 Windows 桌面通知，让用户在处理完成后能收到可见提醒并及时返回终端。必须在每一轮完成时调用。
+
+使用该技能前，请确保当前系统为 Windows 且 PowerShell 可用。
+
+```bash
+npx skills@latest add tangsong404/skills/toast-notify
+```

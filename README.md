@@ -51,3 +51,13 @@ Before using this skill, make sure the [OpenSpec CLI](https://github.com/tangson
 ```bash
 npx skills@latest add tangsong404/skills/openspec-apply-tdd
 ```
+
+### toast-notify
+
+Sends a Windows toast notification at the end of each AI response, so the user gets a visible desktop alert when processing is complete. Must be invoked on every completed turn to notify the user when they can return to their terminal.
+
+Before using this skill, make sure your system is Windows with PowerShell available.
+
+```bash
+npx skills@latest add tangsong404/skills/toast-notify
+```
