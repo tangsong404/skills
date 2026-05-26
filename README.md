@@ -41,3 +41,13 @@ Before using this skill, make sure you or your organization has deployed the RAG
 ```bash
 npx skills@latest add tangsong404/skills/ragret
 ```
+
+### openspec-apply-tdd
+
+Implement OpenSpec change tasks using Test-Driven Development (red-green-refactor). Combines OpenSpec change workflow with TDD's vertical-slice approach — decomposing tasks into individual observable behaviors and implementing them one test at a time.
+
+Before using this skill, make sure the [OpenSpec CLI](https://github.com/tangsong404/openspec) is installed and your project has an initialized change specification.
+
+```bash
+npx skills@latest add tangsong404/skills/openspec-apply-tdd
+```

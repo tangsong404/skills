@@ -41,3 +41,13 @@ npx skills@latest add tangsong404/skills/everything-find
 ```bash
 npx skills@latest add tangsong404/skills/ragret
 ```
+
+### openspec-apply-tdd
+
+使用测试驱动开发（红-绿-重构）实施 OpenSpec 变更任务。将 OpenSpec 变更流程与 TDD 的垂直切片方法相结合——将任务分解为单个可观察的行为，一次一个测试地实现功能。
+
+使用该技能前，请确保已安装 [OpenSpec CLI](https://github.com/tangsong404/openspec) 并且项目已初始化变更规范。
+
+```bash
+npx skills@latest add tangsong404/skills/openspec-apply-tdd
+```
