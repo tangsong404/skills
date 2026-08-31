@@ -14,12 +14,12 @@ npx skills@latest add tangsong404/skills
 
 ## Skill Overview
 
-### shifu
+### fuck-vibe-coding
 
-An orchestration framework for persona-based teaching: distill any notable person's knowledge into a reusable `.skill` file, map their mental models into teaching strategies, and execute interactive persona-based lessons. Supports modes from quick overviews to deep, Socratic-style tutoring.
+Programmer Project Source Code Mentor: Deeply dive into the source code, understand the architecture direction, and teach along the way. Go through the code segment by segment, learning and teaching at the same time. Each step is progressed in sections, and every conversation generates a separate note file. Helps programmers regain control of project code from AI.
 
 ```bash
-npx skills@latest add tangsong404/skills/shifu
+npx skills@latest add tangsong404/skills/fuck-vibe-coding
 ```
 
 ### everything-find

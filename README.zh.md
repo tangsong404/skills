@@ -14,12 +14,12 @@ npx skills@latest add tangsong404/skills
 
 ## 技能概述
 
-### shifu
+### fuck-vibe-coding
 
-一个基于角色(persona)的教学编排框架：将任意知名人物的知识蒸馏为可复用的 `.skill` 文件，将其思维模型映射为教学策略，执行交互式角色教学。支持从快速概览到深度苏格拉底式辅导等多种模式。
+程序员项目源码导师：深度结合源码，理解架构方向并进行教学，每次一段代码，边学边教，步骤按段推进，每次对话会生成一个单独的笔记文件。帮助程序员重新从AI手中掌握项目代码。
 
 ```bash
-npx skills@latest add tangsong404/skills/shifu
+npx skills@latest add tangsong404/skills/fuck-vibe-coding
 ```
 
 ### everything-find

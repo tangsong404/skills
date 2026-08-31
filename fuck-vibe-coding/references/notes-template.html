@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{TOPIC} — {CHAT_ID}</title>
+  <style>
+    :root {
+      --sk-bg: #f5f0e8;
+      --sk-fg: #2c2c2c;
+      --sk-pencil: #2c2c2c;
+      --sk-red: #b91c1c;
+      --sk-ink: #1e3a5f;
+      --sk-leaf: #3d5a45;
+      --sk-accent: #816d70;
+      --sk-shadow: 4px 4px 0 rgba(44, 44, 44, 0.18);
+      --sk-shadow-red: 4px 4px 0 rgba(185, 28, 28, 0.15);
+      --sk-shadow-ink: 4px 4px 0 rgba(30, 58, 95, 0.15);
+      --sk-shadow-leaf: 4px 4px 0 rgba(61, 90, 69, 0.15);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      background-color: var(--sk-bg);
+      color: var(--sk-fg);
+      margin: 0;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Paper grain — diagonal noise ~3% */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    /* Cross-hatch corner accent */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; right: 0;
+      width: 120px; height: 120px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.04;
+      background: repeating-linear-gradient(
+        45deg, transparent, transparent 3px,
+        var(--sk-pencil) 3px, var(--sk-pencil) 4px
+      );
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 46rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    @media (min-width: 768px) {
+      .wrap { padding: 3.5rem 2rem 5rem; max-width: 52rem; }
+    }
+
+    /* ── Typography utilities (showcase: scribble, strike, highlight) ── */
+    .scribble {
+      text-decoration: underline dashed;
+      text-decoration-color: var(--sk-red);
+      text-underline-offset: 5px;
+      text-decoration-thickness: 1.5px;
+    }
+    .scribble:hover, a.scribble:hover {
+      text-decoration-style: wavy;
+      text-decoration-color: var(--sk-ink);
+    }
+    .wavy {
+      text-decoration: underline wavy;
+      text-decoration-color: var(--sk-ink);
+      text-underline-offset: 4px;
+    }
+    .strike {
+      position: relative;
+      display: inline;
+    }
+    .strike::after {
+      content: "";
+      position: absolute;
+      left: -2px; right: -2px;
+      top: 52%;
+      height: 2px;
+      background: var(--sk-red);
+      transform: rotate(-2deg);
+      opacity: 0.75;
+    }
+    .highlight {
+      background: linear-gradient(180deg, transparent 55%, rgba(185, 28, 28, 0.12) 55%);
+      padding: 0 0.15em;
+    }
+    .highlight-ink {
+      background: linear-gradient(180deg, transparent 55%, rgba(30, 58, 95, 0.12) 55%);
+      padding: 0 0.15em;
+    }
+    .highlight-leaf {
+      background: linear-gradient(180deg, transparent 55%, rgba(61, 90, 69, 0.14) 55%);
+      padding: 0 0.15em;
+    }
+    mark {
+      background: rgba(185, 28, 28, 0.1);
+      color: inherit;
+      padding: 0.1em 0.25em;
+    }
+    del {
+      text-decoration: none;
+      position: relative;
+    }
+    del::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      border-top: 2px dashed var(--sk-accent);
+      transform: rotate(-1deg);
+    }
+
+    /* ── Hero (stacked bold italic like showcase) ── */
+    .hero {
+      margin-bottom: 3rem;
+      transform: rotate(-0.35deg);
+      position: relative;
+    }
+    .hero-doodle {
+      position: absolute;
+      top: -0.5rem;
+      right: 0;
+      opacity: 0.2;
+      transform: rotate(12deg);
+    }
+    .hero .eyebrow {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.68rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--sk-red);
+      margin: 0 0 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      font-weight: 700;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+    .hero h1 .line2 {
+      display: block;
+      font-weight: 400;
+      color: rgba(44, 44, 44, 0.72);
+      margin-top: 0.15em;
+    }
+    .hero .subtitle {
+      font-size: 1.15rem;
+      color: rgba(44, 44, 44, 0.55);
+      margin: 1.25rem 0;
+      max-width: 32rem;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .meta-chip {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.65rem;
+      border: 2px dashed rgba(44, 44, 44, 0.35);
+      transform: rotate(-0.5deg);
+      box-shadow: 2px 2px 0 rgba(44, 44, 44, 0.08);
+    }
+    .meta-chip.red { border-color: var(--sk-red); color: var(--sk-red); }
+    .meta-chip.ink { border-color: var(--sk-ink); color: var(--sk-ink); }
+    .meta-chip.leaf { border-color: var(--sk-leaf); color: var(--sk-leaf); }
+
+    /* ── Palette strip (showcase footer) ── */
+    .palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      margin: 2rem 0 0;
+      padding: 1rem 0;
+      border-top: 2px dashed rgba(44, 44, 44, 0.12);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .swatch-dot {
+      width: 14px; height: 14px;
+      border: 2px dashed rgba(44, 44, 44, 0.3);
+      transform: rotate(3deg);
+    }
+    .swatch-dot.pencil { background: var(--sk-pencil); }
+    .swatch-dot.paper { background: var(--sk-bg); }
+    .swatch-dot.red { background: var(--sk-red); }
+    .swatch-dot.ink { background: var(--sk-ink); }
+    .swatch-dot.leaf { background: var(--sk-leaf); }
+
+    /* ── Card variants ── */
+    .card {
+      border: 2px dashed var(--sk-fg);
+      box-shadow: var(--sk-shadow);
+      padding: 1.75rem 1.5rem;
+      margin: 2rem 0;
+      background: var(--sk-bg);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+    .card:nth-child(odd) { transform: rotate(0.4deg); }
+    .card:nth-child(even) { transform: rotate(-0.3deg); }
+    .card:hover {
+      transform: translate(-2px, -2px) rotate(0.5deg);
+      box-shadow: 6px 6px 0 rgba(44, 44, 44, 0.22);
+    }
+    .card.card-ink {
+      border-color: var(--sk-ink);
+      box-shadow: var(--sk-shadow-ink);
+    }
+    .card.card-leaf {
+      border-color: var(--sk-leaf);
+      box-shadow: var(--sk-shadow-leaf);
+    }
+    .card.card-red {
+      border-color: var(--sk-red);
+      box-shadow: var(--sk-shadow-red);
+    }
+    .card-num {
+      position: absolute;
+      top: 1rem; right: 1.25rem;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: rgba(44, 44, 44, 0.06);
+      line-height: 1;
+    }
+
+    .section-tag {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.65rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      margin: 0 0 0.35rem;
+    }
+    .section-tag.red { color: var(--sk-red); }
+    .section-tag.ink { color: var(--sk-ink); }
+    .section-tag.leaf { color: var(--sk-leaf); }
+    .section-tag.neutral { color: var(--sk-accent); }
+
+    h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 0 0 1rem;
+      line-height: 1.12;
+    }
+    h2 .wavy { font-weight: 700; }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 1.5rem 0 0.5rem;
+      color: rgba(44, 44, 44, 0.88);
+    }
+    p { margin: 0.65rem 0; }
+
+    /* ── Journal narrative (plain prose before bullets) ── */
+    .journal {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      margin: 1.25rem 0;
+      padding: 0 0.15rem;
+    }
+    .journal-lead {
+      font-size: 1.12rem;
+      border-left: 3px dashed var(--sk-ink);
+      padding: 0.75rem 1rem;
+      margin: 1.5rem 0;
+      background: rgba(30, 58, 95, 0.04);
+      transform: rotate(-0.2deg);
+    }
+    .journal-segment {
+      margin: 1.75rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px dashed rgba(44, 44, 44, 0.1);
+    }
+    .journal-segment .seg-label {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sk-red);
+      margin: 0 0 0.5rem;
+    }
+    .journal-outro {
+      margin-top: 2rem;
+      padding: 1rem 1.15rem;
+      border: 2px dashed rgba(61, 90, 69, 0.4);
+      background: rgba(61, 90, 69, 0.04);
+      transform: rotate(0.3deg);
+    }
+
+    /* ── Sketchnote sticky labels ── */
+    .sketch-notes {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin: 1.25rem 0;
+    }
+    .sketch-note {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.55rem 0.75rem;
+      border-left: 3px dashed var(--sk-fg);
+      background: rgba(44, 44, 44, 0.025);
+      transform: rotate(0.2deg);
+    }
+    .sketch-note:nth-child(even) { transform: rotate(-0.25deg); }
+    .sketch-note .label {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      min-width: 3.5rem;
+      flex-shrink: 0;
+    }
+    .sketch-note.idea .label { color: var(--sk-ink); }
+    .sketch-note.idea { border-left-color: var(--sk-ink); }
+    .sketch-note.todo .label { color: var(--sk-red); }
+    .sketch-note.todo { border-left-color: var(--sk-red); }
+    .sketch-note.done .label { color: var(--sk-leaf); }
+    .sketch-note.done { border-left-color: var(--sk-leaf); }
+    .sketch-note.ref .label { color: var(--sk-accent); }
+
+    /* ── Pencil-fill button (showcase interaction) ── */
+    .sketch-btn {
+      display: inline-block;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      border: 2px dashed var(--sk-fg);
+      background: transparent;
+      color: var(--sk-fg);
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: var(--sk-shadow);
+      transform: rotate(-0.5deg);
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.15s;
+    }
+    .sketch-btn:hover {
+      background: var(--sk-pencil);
+      color: var(--sk-bg);
+    }
+    .sketch-btn:active {
+      transform: translate(4px, 4px) rotate(-2deg);
+      box-shadow: none;
+    }
+    .sketch-btn.accent {
+      border-color: var(--sk-red);
+      color: var(--sk-red);
+    }
+    .sketch-btn.accent:hover {
+      background: var(--sk-red);
+      color: var(--sk-bg);
+    }
+    .sketch-btn.ink {
+      border-color: var(--sk-ink);
+      color: var(--sk-ink);
+    }
+    .sketch-btn.ink:hover {
+      background: var(--sk-ink);
+      color: var(--sk-bg);
+    }
+
+    /* ── Flow / architecture ── */
+    .flow {
+      border: 2px dashed rgba(30, 58, 95, 0.45);
+      padding: 1.15rem 1.35rem;
+      margin: 1rem 0;
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-style: normal;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      background: rgba(30, 58, 95, 0.04);
+      white-space: pre-wrap;
+      box-shadow: var(--sk-shadow-ink);
+      transform: rotate(0.25deg);
+    }
+    .flow .hl-red { color: var(--sk-red); font-weight: 600; }
+    .flow .hl-ink { color: var(--sk-ink); font-weight: 600; }
+    .flow .hl-leaf { color: var(--sk-leaf); font-weight: 600; }
+
+    /* ── Code block with cross-hatch header ── */
+    .code-block { margin: 1.35rem 0; }
+    .code-path {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sk-ink);
+      margin-bottom: 0;
+      padding: 0.45rem 0.75rem;
+      border: 2px dashed rgba(30, 58, 95, 0.35);
+      border-bottom: none;
+      background: rgba(30, 58, 95, 0.06);
+      transform: rotate(0.3deg);
+    }
+    pre {
+      border: 2px dashed rgba(44, 44, 44, 0.45);
+      padding: 1rem 1.15rem;
+      margin: 0;
+      overflow-x: auto;
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-style: normal;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      background: var(--sk-bg);
+      position: relative;
+    }
+    pre .cm { color: rgba(44, 44, 44, 0.45); font-style: italic; }
+    pre .kw { color: var(--sk-ink); font-weight: 600; }
+    pre .fn { color: var(--sk-leaf); }
+    pre .str { color: var(--sk-red); }
+    pre .num { color: var(--sk-accent); }
+    .code-note {
+      font-size: 0.95rem;
+      margin-top: 0.65rem;
+      padding: 0.65rem 0.85rem;
+      border-left: 3px solid var(--sk-red);
+      background: rgba(185, 28, 28, 0.04);
+    }
+    .code-note .ln {
+      font-family: ui-monospace, monospace;
+      font-style: normal;
+      font-size: 0.82em;
+      color: var(--sk-ink);
+      font-weight: 600;
+    }
+
+    /* ── Callout variants ── */
+    .callout {
+      border: 2px dashed rgba(44, 44, 44, 0.4);
+      padding: 1rem 1.15rem;
+      margin: 1.15rem 0;
+      background: rgba(44, 44, 44, 0.04);
+      transform: rotate(0.5deg);
+      box-shadow: 3px 3px 0 rgba(44, 44, 44, 0.1);
+    }
+    .callout.pitfall {
+      border-color: var(--sk-red);
+      background: rgba(185, 28, 28, 0.05);
+      box-shadow: var(--sk-shadow-red);
+    }
+    .callout.tip {
+      border-color: var(--sk-leaf);
+      background: rgba(61, 90, 69, 0.05);
+      box-shadow: var(--sk-shadow-leaf);
+    }
+    .callout-title {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin: 0 0 0.5rem;
+    }
+    .callout.pitfall .callout-title { color: var(--sk-red); }
+    .callout.tip .callout-title { color: var(--sk-leaf); }
+    .callout .callout-title { color: var(--sk-accent); }
+
+    /* ── Recipe / chain ── */
+    .recipe, .chain {
+      list-style: none;
+      padding: 0;
+      margin: 0.75rem 0;
+    }
+    .recipe li, .chain li {
+      position: relative;
+      padding: 0.5rem 0 0.5rem 1.6rem;
+      border-bottom: 1px dashed rgba(44, 44, 44, 0.12);
+    }
+    .recipe li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      font-style: normal;
+      color: var(--sk-red);
+      font-weight: 700;
+    }
+    .chain li::before {
+      content: "◦";
+      position: absolute;
+      left: 0;
+      color: var(--sk-ink);
+      font-weight: 700;
+    }
+
+    /* ── File table ── */
+    table.files {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.78rem;
+      margin: 1rem 0;
+    }
+    table.files th {
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.62rem;
+      padding: 0.55rem 0.35rem;
+      border-bottom: 2px dashed rgba(44, 44, 44, 0.25);
+    }
+    table.files th:nth-child(1) { color: var(--sk-ink); }
+    table.files th:nth-child(2) { color: var(--sk-red); }
+    table.files th:nth-child(3) { color: var(--sk-leaf); }
+    table.files td {
+      padding: 0.6rem 0.35rem;
+      border-bottom: 1px dashed rgba(44, 44, 44, 0.12);
+      vertical-align: top;
+    }
+    table.files tr:hover td {
+      background: rgba(44, 44, 44, 0.03);
+    }
+    table.files code {
+      font-size: 0.85em;
+      word-break: break-all;
+      color: var(--sk-ink);
+    }
+
+    /* ── Symbol chips ── */
+    .sym-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.75rem 0;
+    }
+    .sym-chip {
+      font-family: ui-monospace, monospace;
+      font-style: normal;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.55rem;
+      border: 2px dashed rgba(44, 44, 44, 0.3);
+      transform: rotate(-0.8deg);
+    }
+    .sym-chip.ink { border-color: var(--sk-ink); color: var(--sk-ink); }
+    .sym-chip.leaf { border-color: var(--sk-leaf); color: var(--sk-leaf); }
+    .sym-chip.red { border-color: var(--sk-red); color: var(--sk-red); }
+
+    code {
+      font-family: ui-monospace, monospace;
+      font-style: normal;
+      font-size: 0.88em;
+      background: rgba(30, 58, 95, 0.07);
+      color: var(--sk-ink);
+      padding: 0.12em 0.38em;
+      border: 1px dashed rgba(30, 58, 95, 0.2);
+    }
+    a {
+      color: var(--sk-ink);
+      text-decoration: underline dashed;
+      text-underline-offset: 4px;
+      transition: text-decoration-style 0.15s, color 0.15s;
+    }
+    a:hover {
+      text-decoration-style: wavy;
+      color: var(--sk-red);
+    }
+
+    .divider {
+      border: none;
+      height: 2px;
+      margin: 2.5rem 0;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(44,44,44,0.2) 0, rgba(44,44,44,0.2) 8px,
+        transparent 8px, transparent 14px
+      );
+    }
+
+    .page-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(44, 44, 44, 0.35);
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 2px dashed rgba(44, 44, 44, 0.12);
+    }
+
+    .doodle-inline {
+      display: inline-block;
+      vertical-align: middle;
+      opacity: 0.35;
+      margin: 0 0.25rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card, .card:hover, .sketch-btn { transform: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HERO: stacked title + meta chips + doodle -->
+    <header class="hero">
+      <svg class="hero-doodle" width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <path d="M8 48 Q32 8 56 48" stroke="#2c2c2c" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+        <path d="M12 52 L52 52" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="3 2"/>
+      </svg>
+      <p class="eyebrow">Chat {CHAT_ID} · Sketchbook</p>
+      <h1>{TOPIC}<span class="line2">session <span class="scribble">notes</span></span></h1>
+      <p class="subtitle">{ONE_LINE_SUMMARY — this file covers <strong>this chat only</strong>; see notes-index.md for history}</p>
+      <div class="hero-meta">
+        <span class="meta-chip red">{CHAT_ID}</span>
+        <span class="meta-chip ink">{DATE}</span>
+        <span class="meta-chip leaf">seg {FROM}–{TO}</span>
+        <span class="meta-chip">{covered}/{L}</span>
+      </div>
+    </header>
+
+    <!-- Opening: what we learned today -->
+    <div class="journal-lead">
+      <p>{Opening 3–5 sentences: where we resumed, what this chat clarified, link to prior chat}</p>
+    </div>
+
+    <!-- OVERVIEW (full on first chat; later chats can use one paragraph) -->
+    <section class="card card-ink">
+      <span class="card-num">01</span>
+      <p class="section-tag ink">Overview</p>
+      <h2>How I see the big picture now</h2>
+      <div class="journal">
+        <p>{Plain-language architecture — not a bullet dump}</p>
+      </div>
+      <div class="flow"><span class="hl-ink">main()</span> → <span class="hl-red">StateMachine</span> → <span class="hl-leaf">DEV_ACTIVE</span></div>
+    </section>
+
+    <!-- Per segment: journal first, then code as evidence -->
+    <section class="card">
+      <span class="card-num">02</span>
+      <p class="section-tag red">Step {N} · segment {M}</p>
+      <h2>{SEGMENT_GOAL — human-readable title}</h2>
+
+      <div class="journal-segment">
+        <p class="seg-label">What clicked for me in this segment</p>
+        <div class="journal">
+          <p>{2–4 sentences: I used to think… → opened file:line → actually… → how this connects to the previous segment}</p>
+        </div>
+      </div>
+
+      <h3>Evidence · code</h3>
+      <div class="code-block">
+        <div class="code-path">{full/path/file.c}:{start}-{end}</div>
+        <pre><span class="cm">// Use .code-note .ln for line-level notes</span>
+<span class="kw">void</span> <span class="fn">Init_OnEnter</span>(<span class="kw">void</span> *ctx) {
+    <span class="fn">Ntp_Register</span>(ctx, <span class="str">"pool.ntp.org"</span>);  <span class="cm">// L134</span>
+}</pre>
+        <div class="code-note">
+          <span class="ln">L134</span> NTP registration — removing this desyncs time in ACTIVE<br>
+          <span class="ln">L142</span> <span class="strike">sleep directly</span> → use <span class="highlight">two-phase reboot</span> instead
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-path">{second/file.c}:{start}-{end}</div>
+        <pre>{SECOND_SNIPPET}</pre>
+        <div class="code-note">{Line notes}</div>
+      </div>
+
+      <h3>Call chain</h3>
+      <ul class="chain">
+        <li><code>{file:line}</code> → <code>{func}</code> — {why}</li>
+      </ul>
+
+      <div class="callout pitfall">
+        <p class="callout-title">Trap I almost hit</p>
+        <p class="journal">{Explain the pitfall in plain language — not a single bullet}</p>
+      </div>
+    </section>
+
+    <!-- Closing -->
+    <div class="journal-outro">
+      <p><strong>Next time:</strong> {Next segment}. Earlier chats in <span class="scribble">notes-index.md</span>.</p>
+    </div>
+
+    <!-- CHEATSHEET -->
+    <section class="card card-leaf">
+      <span class="card-num">✓</span>
+      <p class="section-tag leaf">Cheatsheet</p>
+      <h2>Where I'll land when editing code</h2>
+      <div class="journal">
+        <p>{1–2 sentences: entry point, top 2–3 file:line to touch today}</p>
+      </div>
+      <ul class="recipe">
+        <li>Build: <code>{command}</code></li>
+      </ul>
+      <p style="margin-top:1rem">
+        <a class="sketch-btn ink" href="#">{Jump to Step 1}</a>
+      </p>
+    </section>
+
+    <hr class="divider" />
+
+    <footer class="page-foot">
+      <div class="palette">
+        <span class="swatch"><span class="swatch-dot pencil"></span>Pencil</span>
+        <span class="swatch"><span class="swatch-dot paper"></span>Paper</span>
+        <span class="swatch"><span class="swatch-dot red"></span>Sketch Red</span>
+        <span class="swatch"><span class="swatch-dot ink"></span>Ink Blue</span>
+        <span class="swatch"><span class="swatch-dot leaf"></span>Leaf Green</span>
+      </div>
+      <span>pg. 01 / sketchbook · fkvb</span>
+    </footer>
+  </div>
+</body>
+</html>
